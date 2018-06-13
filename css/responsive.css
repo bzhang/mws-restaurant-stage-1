@@ -2,49 +2,46 @@
     display: flex;
     flex-wrap: wrap;
 }
-
-@media screen and (max-width: 463px) {
-    .filter-options {
-        height: 100px;
-        max-width: 100%;
-    }
+nav {
+    height: 100px;
 }
-
-@media screen and (max-width: 477px) {
+nav h1 a {
+    display: block;
+    max-width: 400px;
+    margin: auto;
+}
+nav h1 {
+    padding: 20px;
+}
+.filter-options {
+    height: 100px;
+    max-width: 100%;
+}  
+#restaurants-list li {
+    width: 100%;
+}
+/*  Small devices (landscape phones, 576px and up)  */
+@media screen and (min-width: 576px) {
     nav {
-        height: 100px;
+        height: 80px;
+    }
+    nav h1 a {
+        display: inline;
     }
     nav h1 {
-        padding: 20px;
+        padding: 25px;
     }
 }
 
-@media screen and (max-width: 483px) {
-/* .filter-options select {
-    margin: 5px;
-} */
-/* .filter-options h2 {
-    margin: 0 5px;
-    font-size: 1.2rem;
-} */
+/* Medium devices (tablets, 768px and up) */
+@media screen and (min-width: 768px) {
 
 }
 
-@media screen and (max-width: 549px) {
-
-}
-
-@media screen and (min-width: 550px) {
-
-}
-
-@media screen and (min-width: 700px) {
-
-}
-
-@media screen and (min-width: 850px) {
+/* Large devices (desktops, 992px and up) */
+@media screen and (min-width: 992px) {
     main, .header__inner, .nav, .content {
-        width: 850px;
+        width: 992px;
         margin-left: auto;
         margin-right: auto;
     }
