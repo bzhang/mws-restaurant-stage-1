@@ -14,7 +14,7 @@ nav h1 {
     padding: 20px;
 }
 .filter-options {
-    height: 100px;
+    height: 100%;
     max-width: 100%;
 }  
 #restaurants-list li {
@@ -47,7 +47,7 @@ nav h1 {
 @media screen and (min-width: 992px) {
     
     main, .header__inner, .nav, .content {
-        width: 992px;
+        width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
