@@ -210,6 +210,9 @@ nav h1 a {
 #restaurants-list li a:focus {
 	background-color: #3397db;
 }
+#restaurants-list li a:active {
+  margin: 17px 2px 2px;
+}
 
 /* ====================== Restaurant Details ====================== */
 .inside header {
