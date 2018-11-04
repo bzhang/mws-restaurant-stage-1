@@ -2,12 +2,12 @@
   display: flex;
   flex-wrap: wrap;
 }
-nav h1 a {
+#header-title h1 a {
   display: block;
   max-width: 400px;
   margin: auto;
 }
-nav h1 {
+#header-title h1 {
   padding: 20px;
 }
 .filter-options {
@@ -19,13 +19,13 @@ nav h1 {
 }
 /*  Small devices (landscape phones, 576px and up)  */
 @media screen and (min-width: 576px) {
-  nav {
+  #header-title {
     height: 80px;
   }
-  nav h1 a {
+  #header-title h1 a {
     display: inline;
   }
-  nav h1 {
+  #header-title h1 {
     padding: 25px;
   }
   .inside #map-container {
@@ -42,7 +42,7 @@ nav h1 {
 /* Medium devices (tablets, 768px and up) */
 @media screen and (min-width: 768px) {
   #breadcrumb {
-    width: calc(50% - 80px);
+    width: 50%;
   }
   .inside #maincontent {
     padding-top: 131px;
