@@ -79,6 +79,7 @@ class DBHelper {
           reject(`Request failed. Returned status of ${xhr.status}`);
         }
       };
+      xhr.onerror = reject;
       xhr.send();
     });
   }
@@ -198,6 +199,7 @@ class DBHelper {
             reject(`Request failed. Returned status of ${xhr.status}`);
           }
         };
+        xhr.onerror = reject;
         xhr.send();
       } else {
         reject('Invalid restaurant ID');
@@ -207,7 +209,7 @@ class DBHelper {
 
   static saveReviewsToCache(reviews) {
     const dbPromise = DBHelper.dbPromise;
-    if (dbPromise && restaurant && restaurant.id) {
+    if (dbPromise && reviews) {
       dbPromise.then((db) => {
         const transaction = db.transaction(['reviews'], 'readwrite');
         const store = transaction.objectStore('reviews');
@@ -225,7 +227,7 @@ class DBHelper {
         dbPromise.then((db) => {
           const transaction = db.transaction(['reviews'], 'readonly');
           const store = transaction.objectStore('reviews');
-          const request = store.index('by_restaurant_id').getAll(restaurantId);
+          const request = store.index('by_restaurant_id').getAll(Number(restaurantId));
           request.onsuccess = () => {
             resolve(request.result);
           };

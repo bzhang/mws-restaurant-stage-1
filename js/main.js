@@ -9,6 +9,7 @@ var markers = []
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added 
+  updateRestaurants();
   fetchNeighborhoods();
   fetchCuisines();
 });
@@ -68,21 +69,23 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
  * Initialize leaflet map, called from HTML.
  */
 initMap = () => {
-  self.newMap = L.map('map', {
-        center: [40.722216, -73.987501],
-        zoom: 12,
-        scrollWheelZoom: false
-      });
-  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-    mapboxToken: 'pk.eyJ1IjoiYmluZ2p1biIsImEiOiJjamlkbzd4ZzYwMWN1M3BteWwzMXhxMDUwIn0.kU11gEF83sRq9MzQeHLj2A',
-    maxZoom: 18,
-    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-      '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-      'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    id: 'mapbox.streets'
-  }).addTo(newMap);
-
-  updateRestaurants();
+  try {
+    self.newMap = L.map('map', {
+          center: [40.722216, -73.987501],
+          zoom: 12,
+          scrollWheelZoom: false
+        });
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
+      mapboxToken: 'pk.eyJ1IjoiYmluZ2p1biIsImEiOiJjamlkbzd4ZzYwMWN1M3BteWwzMXhxMDUwIn0.kU11gEF83sRq9MzQeHLj2A',
+      maxZoom: 18,
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+        '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      id: 'mapbox.streets'
+    }).addTo(newMap);
+  } catch (e) {
+    // This will fail in offline mode
+  }
 }
 /* window.initMap = () => {
   let loc = {
@@ -185,9 +188,9 @@ createRestaurantHTML = (restaurant) => {
   more.href = DBHelper.urlForRestaurant(restaurant);
   more.setAttribute('role', 'button');
   more.setAttribute('aria-label', `View details about ${restaurant.name}`);
-  li.append(more)
+  li.append(more);
 
-  return li
+  return li;
 }
 
 /**

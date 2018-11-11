@@ -18,6 +18,8 @@ self.addEventListener('install', (event) => {
             '/img/8.jpg',
             '/img/9.jpg',
             '/img/10.jpg',
+            '/img/heart-true.png',
+            '/img/heart-false.png',
             '/js/dbhelper.js',
             '/js/main.js',
             '/js/restaurant_info.js'
