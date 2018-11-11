@@ -7,19 +7,27 @@ class DBHelper {
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
-  static get DATABASE_URL() {
-    return 'http://localhost:1337/restaurants';
+  static get API_URL() {
+    return 'http://localhost:1337';
   }
 
   static get dbPromise() {
     if (!DBHelper._dbPromise && window.indexedDB) {
       DBHelper._dbPromise = new Promise((resolve, reject) => {
-        const request = window.indexedDB.open('restaurant-reviews', 1);
+        const request = window.indexedDB.open('restaurant-reviews', 2);
         request.onupgradeneeded = (event) => {
           const db = event.target.result;
-          db.createObjectStore('restaurants', {
-            keyPath: 'id'
-          });
+          if (event.oldVersion < 1) {
+            db.createObjectStore('restaurants', {
+              keyPath: 'id'
+            });
+          }
+          if (event.oldVersion < 2) {
+            const store = db.createObjectStore('reviews', {
+              keyPath: 'id'
+            });
+            store.createIndex('by_restaurant_id', 'restaurant_id');
+          }
         };
         request.onsuccess = (event) => {
           resolve(request.result);
@@ -57,7 +65,7 @@ class DBHelper {
   static getRestaurantsFromServer() {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', DBHelper.DATABASE_URL);
+      xhr.open('GET', `${DBHelper.API_URL}/restaurants`);
       xhr.onload = () => {
         if (xhr.status === 200) { // Got a success response from server!
           const restaurants = JSON.parse(xhr.responseText);
@@ -77,7 +85,7 @@ class DBHelper {
         const transaction = db.transaction(['restaurants'], 'readwrite');
         const store = transaction.objectStore('restaurants');
         restaurants.forEach((restaurant) => {
-          store.add(restaurant);
+          store.put(restaurant);
         });
       });
     }
@@ -95,11 +103,11 @@ class DBHelper {
   }
 
   static fetchRestaurants() {
-    return DBHelper.getRestaurantsFromCache().catch(() => {
-      return DBHelper.getRestaurantsFromServer().then((restaurants) => {
-        DBHelper.saveRestaurantsToCache(restaurants);
-        return restaurants;
-      });
+    return DBHelper.getRestaurantsFromServer().catch(() => {
+      return DBHelper.getRestaurantsFromCache();
+    }).then((restaurants) => {
+      DBHelper.saveRestaurantsToCache(restaurants);
+      return restaurants;
     });
   }
 
@@ -150,7 +158,7 @@ class DBHelper {
   static setRestaurantFavorite(restaurantId, isFavorite = false) {
     return new Promise((resolve, reject) => {
       if (restaurantId) {
-        const url = `${DBHelper.DATABASE_URL}/${restaurantId}/?is_favorite=${isFavorite}`;
+        const url = `${DBHelper.API_URL}/restaurants/${restaurantId}/?is_favorite=${isFavorite}`;
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', url);
         xhr.onload = () => {
@@ -167,6 +175,69 @@ class DBHelper {
       } else {
         reject('Invalid restaurant ID');
       }
+    });
+  }
+
+  static getReviewsFromServerByRestaurantId(restaurantId) {
+    return new Promise((resolve, reject) => {
+      if (restaurantId) {
+        const url = `${DBHelper.API_URL}/reviews/?restaurant_id=${restaurantId}`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.onload = () => {
+          if (xhr.status === 200) { // Got a success response from server!
+            const reviews = JSON.parse(xhr.responseText);
+            DBHelper.saveReviewsToCache(reviews);
+            resolve(reviews);
+          } else {
+            reject(`Request failed. Returned status of ${xhr.status}`);
+          }
+        };
+        xhr.send();
+      } else {
+        reject('Invalid restaurant ID');
+      }
+    });
+  }
+
+  static saveReviewsToCache(reviews) {
+    const dbPromise = DBHelper.dbPromise;
+    if (dbPromise && restaurant && restaurant.id) {
+      dbPromise.then((db) => {
+        const transaction = db.transaction(['reviews'], 'readwrite');
+        const store = transaction.objectStore('reviews');
+        reviews.forEach((review) => {
+          store.put(review);
+        });
+      });
+    }
+  }
+
+  static getReviewsFromCacheByRestaurantId(restaurantId) {
+    return new Promise((resolve, reject) => {
+      const dbPromise = DBHelper.dbPromise;
+      if (dbPromise && restaurantId) {
+        dbPromise.then((db) => {
+          const transaction = db.transaction(['reviews'], 'readonly');
+          const store = transaction.objectStore('reviews');
+          const request = store.index('by_restaurant_id').getAll(restaurantId);
+          request.onsuccess = () => {
+            resolve(request.result);
+          };
+          request.onerror = reject;
+        });
+      } else {
+        reject();
+      }
+    });
+  }
+
+  static getReviewsByRestaurantId(restaurantId) {
+    return DBHelper.getReviewsFromServerByRestaurantId(restaurantId).catch(() => {
+      return DBHelper.getReviewsFromCacheByRestaurantId(restaurantId);
+    }).then((reviews) => {
+      DBHelper.saveReviewsToCache(reviews);
+      return reviews;
     });
   }
 
