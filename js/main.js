@@ -156,6 +156,18 @@ createRestaurantHTML = (restaurant) => {
   image.alt = `Feature picture for ${restaurant.name}`;
   li.append(image);
 
+  const heart = document.createElement('img');
+  heart.className = 'restaurant-heart';
+  heart.src = restaurant.is_favorite ? 'img/heart-true.png' : 'img/heart-false.png';
+  heart.alt = restaurant.is_favorite ? `Remove ${restaurant.name} from favorites` : `Add ${restaurant.name} to favorites`;
+  heart.addEventListener('click', () => {
+    restaurant.is_favorite = !restaurant.is_favorite;
+    heart.src = restaurant.is_favorite ? 'img/heart-true.png' : 'img/heart-false.png';
+    heart.alt = restaurant.is_favorite ? `Remove ${restaurant.name} from favorites` : `Add ${restaurant.name} to favorites`;
+    return DBHelper.setRestaurantFavorite(restaurant.id, restaurant.is_favorite);
+  });
+  li.append(heart);
+
   const name = document.createElement('h1');
   name.innerHTML = restaurant.name;
   li.append(name);

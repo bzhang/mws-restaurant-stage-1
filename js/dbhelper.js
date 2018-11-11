@@ -83,6 +83,17 @@ class DBHelper {
     }
   }
 
+  static saveRestaurantToCache(restaurant) {
+    const dbPromise = DBHelper.dbPromise;
+    if (dbPromise && restaurant && restaurant.id) {
+      dbPromise.then((db) => {
+        const transaction = db.transaction(['restaurants'], 'readwrite');
+        const store = transaction.objectStore('restaurants');
+        store.put(restaurant);
+      });
+    }
+  }
+
   static fetchRestaurants() {
     return DBHelper.getRestaurantsFromCache().catch(() => {
       return DBHelper.getRestaurantsFromServer().then((restaurants) => {
@@ -133,6 +144,29 @@ class DBHelper {
       // Remove duplicates from cuisines
       const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) === i);
       return uniqueCuisines;
+    });
+  }
+
+  static setRestaurantFavorite(restaurantId, isFavorite = false) {
+    return new Promise((resolve, reject) => {
+      if (restaurantId) {
+        const url = `${DBHelper.DATABASE_URL}/${restaurantId}/?is_favorite=${isFavorite}`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', url);
+        xhr.onload = () => {
+          if (xhr.status === 200) { // Got a success response from server!
+            const response = JSON.parse(xhr.responseText);
+            response.is_favorite = response.is_favorite === 'true';
+            DBHelper.saveRestaurantToCache(response);
+            resolve(response);
+          } else {
+            reject(`Request failed. Returned status of ${xhr.status}`);
+          }
+        };
+        xhr.send();
+      } else {
+        reject('Invalid restaurant ID');
+      }
     });
   }
 

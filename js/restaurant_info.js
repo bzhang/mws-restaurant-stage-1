@@ -33,7 +33,7 @@ initMap = () => {
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
     }
   });
-}  
+};
  
 /* window.initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
@@ -72,7 +72,7 @@ fetchRestaurantFromURL = (callback) => {
       console.error(error);
     });
   }
-}
+};
 
 /**
  * Create restaurant HTML and add it to the webpage
@@ -92,13 +92,33 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
+  // fill heart
+  fillFavoriteHTML();
+
   // fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
   // fill reviews
   fillReviewsHTML();
-}
+};
+
+fillFavoriteHTML = () => {
+  const restaurant = self.restaurant;
+  const heart = document.getElementById('restaurant-heart');
+  heart.src = restaurant.is_favorite ? 'img/heart-true.png' : 'img/heart-false.png';
+  heart.alt = restaurant.is_favorite ? `Remove ${restaurant.name} from favorites` : `Add ${restaurant.name} to favorites`;
+};
+
+/**
+ * Change is_favorite from true to false, or from false to true.
+ */
+toggleFavorite = () => {
+  const restaurant = self.restaurant;
+  restaurant.is_favorite = !restaurant.is_favorite;
+  fillFavoriteHTML();
+  return DBHelper.setRestaurantFavorite(restaurant.id, restaurant.is_favorite);
+};
 
 /**
  * Create restaurant operating hours HTML table and add it to the webpage.
@@ -118,7 +138,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 
     hours.appendChild(row);
   }
-}
+};
 
 /**
  * Create all reviews HTML and add them to the webpage.
@@ -140,7 +160,7 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
-}
+};
 
 /**
  * Create review HTML and add it to the webpage.
@@ -164,7 +184,7 @@ createReviewHTML = (review) => {
   li.appendChild(comments);
 
   return li;
-}
+};
 
 /**
  * Add restaurant name to the breadcrumb navigation menu
@@ -175,7 +195,7 @@ fillBreadcrumb = (restaurant = self.restaurant) => {
   const li = document.createElement('li');
   li.innerHTML = restaurant.name;
   ul.appendChild(li);
-}
+};
 
 /**
  * Get a parameter by name from page URL.
@@ -191,7 +211,7 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
+};
 
 /**
  * Register Service Worker
