@@ -147,22 +147,16 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  * Create all reviews HTML and add them to the webpage.
  */
 fillReviewsHTML = (reviews) => {
-  const container = document.getElementById('reviews-container');
-  const title = document.createElement('h3');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
-
+  const list = document.getElementById('reviews-list');
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
+    list.appendChild(noReviews);
     return;
   }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+  reviews.reverse().forEach(review => {
+    list.appendChild(createReviewHTML(review));
   });
-  container.appendChild(ul);
 };
 
 /**
@@ -170,23 +164,41 @@ fillReviewsHTML = (reviews) => {
  */
 createReviewHTML = (review) => {
   const li = document.createElement('li');
-  const name = document.createElement('p');
+
+  const date = document.createElement('div');
+  date.className = 'review-date';
+  date.innerHTML = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
+  li.appendChild(date);
+
+  const name = document.createElement('h4');
   name.innerHTML = review.name;
   li.appendChild(name);
 
-  const date = document.createElement('p');
-  date.innerHTML = review.date;
-  li.appendChild(date);
-
   const rating = document.createElement('p');
+  rating.className = 'review-rating';
   rating.innerHTML = `Rating: ${review.rating}`;
   li.appendChild(rating);
 
   const comments = document.createElement('p');
+  comments.className = 'review-content';
   comments.innerHTML = review.comments;
   li.appendChild(comments);
 
   return li;
+};
+
+submitReview = () => {
+  const name = document.getElementById('reviews-add-name').value;
+  const rating = document.getElementById('reviews-add-rating').value;
+  const comments = document.getElementById('reviews-add-comments').value;
+  if (name && rating && comments) {
+    DBHelper.createReview(self.restaurant.id, name, rating, comments).then(() => {
+      location.reload();
+    });
+  } else {
+    alert('All fields are required.');
+  }
+  return false;
 };
 
 /**

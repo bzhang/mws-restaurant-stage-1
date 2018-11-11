@@ -52,6 +52,26 @@
     <!-- end restaurant -->
     <!-- Beginning reviews -->
     <section id="reviews-container" role="contentinfo" aria-label="Restaurant Reviews">
+      <h3>Reviews</h3>
+      <section id="reviews-add" aria-label="Add Review">
+        <form onsubmit="return submitReview()">
+          <h4>Add your review:</h4>
+          <p>
+            <label for="reviews-add-name">Name:</label>
+            <input type="text" id="reviews-add-name" name="name" placeholder="Your Name">
+            <label for="reviews-add-rating">Rating:</label>
+            <select id="reviews-add-rating" name="rating">
+              <option>5</option>
+              <option>4</option>
+              <option>3</option>
+              <option>2</option>
+              <option>1</option>
+            </select>
+          </p>
+          <textarea id="reviews-add-comments" name="content" rows="4" aria-label="Your Comments" placeholder="Your Comments"></textarea>
+          <input type="submit" value="Submit">
+        </form>
+      </section>
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->

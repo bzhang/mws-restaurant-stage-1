@@ -241,6 +241,28 @@ class DBHelper {
     });
   }
 
+  static createReview(restaurantId, name, rating, comments) {
+    return new Promise((resolve, reject) => {
+      if (restaurantId && name && rating && comments) {
+        const url = `${DBHelper.API_URL}/reviews`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) { // Got a success response from server!
+            const response = JSON.parse(xhr.responseText);
+            console.log('success!');
+            resolve(response);
+          } else {
+            reject(`Request failed. Returned status of ${xhr.status}`);
+          }
+        };
+        xhr.send(JSON.stringify({ restaurant_id: restaurantId, name, rating, comments }));
+      } else {
+        reject('Invalid data');
+      }
+    });
+  }
+
   /**
    * Restaurant page URL.
    */

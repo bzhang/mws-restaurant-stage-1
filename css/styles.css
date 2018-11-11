@@ -299,21 +299,50 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   padding-bottom: 1pt;
 }
 #reviews-list {
-  margin: 0;
+  margin: 0 0 40px;
   padding: 0;
 }
-#reviews-list li {
-  background-color: #fff;
-  border: 2px solid #f3f3f3;
+#reviews-list li,
+#reviews-add {
   display: block;
   list-style-type: none;
-  margin: 0 0 30px;
+  margin: 0 0 20px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
   overflow: hidden;
-  padding: 0 20px 20px;
-  position: relative;
 }
-#reviews-list li p {
+#reviews-add label {
+  margin-right: 5px;
+  font-weight: bold;
+  font-size: 9.5pt;
+}
+#reviews-add #reviews-add-name {
+  width: 100px;
+  margin-right: 10px;
+}
+#reviews-add #reviews-add-comments {
+  box-sizing: border-box;
+  width: 100%;
+}
+#reviews-list li .review-date {
+  float: right;
+  font-size: 9.5pt;
+}
+#reviews-add h4,
+#reviews-list li h4 {
+  margin-bottom: 10px;
+  font-size: 9.5pt;
+}
+#reviews-list li .review-rating {
   margin: 0 0 10px;
+  font-size: 9.5pt;
+}
+#reviews-list li .review-content {
+  margin: 0;
+  font-size: 9.5pt;
+  color: #555;
 }
 #restaurant-hours td {
   color: #666;
