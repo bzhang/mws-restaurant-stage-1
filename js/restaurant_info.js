@@ -72,7 +72,8 @@ fetchRestaurantFromURL = (callback) => {
       console.error(error);
     });
     DBHelper.getReviewsByRestaurantId(id).then((reviews) => {
-      fillReviewsHTML(reviews);
+      self.reviews = reviews;
+      fillReviewsHTML();
     }, (error) => {
       console.error(error);
     });
@@ -146,17 +147,21 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (reviews) => {
+fillReviewsHTML = () => {
+  const reviews = self.reviews;
   const list = document.getElementById('reviews-list');
-  if (!reviews) {
+  list.innerHTML = '';
+  if (reviews) {
+    reviews.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }).forEach(review => {
+      list.appendChild(createReviewHTML(review));
+    });
+  } else {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     list.appendChild(noReviews);
-    return;
   }
-  reviews.reverse().forEach(review => {
-    list.appendChild(createReviewHTML(review));
-  });
 };
 
 /**
@@ -193,7 +198,14 @@ submitReview = () => {
   const comments = document.getElementById('reviews-add-comments').value;
   if (name && rating && comments) {
     DBHelper.createReview(self.restaurant.id, name, rating, comments).then(() => {
-      location.reload();
+      document.getElementById('reviews-add-name').value = '';
+      document.getElementById('reviews-add-rating').value = 5;
+      document.getElementById('reviews-add-comments').value = '';
+      const reviews = self.reviews;
+      reviews.push({
+        name, rating, comments, createdAt: Date.now()
+      });
+      fillReviewsHTML();
     });
   } else {
     alert('All fields are required.');
@@ -227,10 +239,3 @@ getParameterByName = (name, url) => {
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
-
-/**
- * Register Service Worker
- */
-if (navigator.serviceWorker) {
-  navigator.serviceWorker.register('/sw.js');
-}

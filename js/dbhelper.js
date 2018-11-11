@@ -14,7 +14,7 @@ class DBHelper {
   static get dbPromise() {
     if (!DBHelper._dbPromise && window.indexedDB) {
       DBHelper._dbPromise = new Promise((resolve, reject) => {
-        const request = window.indexedDB.open('restaurant-reviews', 2);
+        const request = window.indexedDB.open('restaurant-reviews', 3);
         request.onupgradeneeded = (event) => {
           const db = event.target.result;
           if (event.oldVersion < 1) {
@@ -28,8 +28,13 @@ class DBHelper {
             });
             store.createIndex('by_restaurant_id', 'restaurant_id');
           }
+          if (event.oldVersion < 3) {
+            const store = db.createObjectStore('pending-reviews', {
+              autoIncrement: true
+            });
+          }
         };
-        request.onsuccess = (event) => {
+        request.onsuccess = () => {
           resolve(request.result);
         };
         request.onerror = reject;
@@ -244,23 +249,50 @@ class DBHelper {
   static createReview(restaurantId, name, rating, comments) {
     return new Promise((resolve, reject) => {
       if (restaurantId && name && rating && comments) {
-        const url = `${DBHelper.API_URL}/reviews`;
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url);
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) { // Got a success response from server!
-            const response = JSON.parse(xhr.responseText);
-            console.log('success!');
-            resolve(response);
-          } else {
-            reject(`Request failed. Returned status of ${xhr.status}`);
-          }
-        };
-        xhr.send(JSON.stringify({ restaurant_id: restaurantId, name, rating, comments }));
+        const review = { restaurant_id: restaurantId, name, rating, comments };
+        if (navigator.serviceWorker) {
+          resolve(DBHelper.savePendingReviewToDB(review).then(() => {
+            return navigator.serviceWorker.ready;
+          }).then((swRegistration) => {
+            return swRegistration.sync.register('sendPendingReviews');
+          }));
+        } else {
+          resolve(DBHelper.postReview(review));
+        }
       } else {
         reject('Invalid data');
       }
     });
+  }
+
+  static postReview(review) {
+    return new Promise((resolve, reject) => {
+      const url = `${DBHelper.API_URL}/reviews`;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) { // Got a success response from server!
+          const response = JSON.parse(xhr.responseText);
+          resolve(response);
+        } else {
+          reject(`Request failed. Returned status of ${xhr.status}`);
+        }
+      };
+      xhr.send(JSON.stringify(review));
+    });
+  }
+
+  static savePendingReviewToDB(review) {
+    const dbPromise = DBHelper.dbPromise;
+    if (dbPromise && review) {
+      return dbPromise.then((db) => {
+        const transaction = db.transaction(['pending-reviews'], 'readwrite');
+        const store = transaction.objectStore('pending-reviews');
+        store.add(review);
+      });
+    } else {
+      return Promise.reject();
+    }
   }
 
   /**
@@ -303,3 +335,9 @@ class DBHelper {
 
 }
 
+/**
+ * Register Service Worker
+ */
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register('/sw.js');
+}

@@ -45,3 +45,102 @@ self.addEventListener('fetch', (event) => {
         return response || fetch(event.request);
     }));
 });
+
+/**
+ * Background sync.
+ */
+
+const API_URL = 'http://localhost:1337';
+
+const dbPromise = new Promise((resolve, reject) => {
+    const request = self.indexedDB.open('restaurant-reviews', 3);
+    request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (event.oldVersion < 1) {
+            db.createObjectStore('restaurants', {
+                keyPath: 'id'
+            });
+        }
+        if (event.oldVersion < 2) {
+            const store = db.createObjectStore('reviews', {
+                keyPath: 'id'
+            });
+            store.createIndex('by_restaurant_id', 'restaurant_id');
+        }
+        if (event.oldVersion < 3) {
+            db.createObjectStore('pending-reviews', {
+                autoIncrement: true
+            });
+        }
+    };
+    request.onsuccess = () => {
+        resolve(request.result);
+    };
+    request.onerror = reject;
+});
+
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sendPendingReviews') {
+        event.waitUntil(sendPendingReviews());
+    }
+});
+
+const sendPendingReviews = () => {
+    return findFirstPendingReview().then((review) => {
+        return postReview(review);
+    }).then(() => {
+        return deleteFirstPendingReview();
+    }).then(() => {
+        // Recursively loop through all of them
+        return sendPendingReviews();
+    }).catch(() => {
+        console.log('done');
+    });
+};
+
+const findFirstPendingReview = () => {
+    return dbPromise.then((db) => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['pending-reviews'], 'readonly');
+            const request = transaction.objectStore('pending-reviews').openCursor();
+            request.onsuccess = () => {
+                const cursor = request.result;
+                if (cursor) {
+                    resolve(cursor.value);
+                } else {
+                    reject();
+                }
+            };
+            request.onerror = reject;
+        });
+    });
+};
+
+const postReview = (review) => {
+    return fetch(`${API_URL}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify(review),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    });
+};
+
+const deleteFirstPendingReview = () => {
+    return dbPromise.then((db) => {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['pending-reviews'], 'readwrite');
+            const request = transaction.objectStore('pending-reviews').openCursor();
+            request.onsuccess = () => {
+                const cursor = request.result;
+                if (cursor) {
+                    resolve(cursor.delete());
+                } else {
+                    reject();
+                }
+            };
+            request.onerror = reject;
+        });
+    });
+};
